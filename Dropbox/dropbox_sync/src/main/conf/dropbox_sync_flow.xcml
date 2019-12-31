@@ -1,0 +1,85 @@
+<x:flow id="dropbox_sync_flow" type="integrationFlow"
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:x="http://www.adroitlogic.org/x/x-flow"
+        xsi:schemaLocation="http://www.adroitlogic.org/x/x-flow http://schemas.adroitlogic.org/x/x-flow-1.0.0.xsd
+           http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd">
+
+    <x:components>
+
+        <bean id="time1" class="org.adroitlogic.x.connector.timer.TimerInTaskConnector">
+            <property name="cronExpression" value="0/30 * * ? * *"/>
+            <property name="parallelExecutionCount" value="4"/>
+            <property name="concurrentPollingCount" value="1"/>
+            <property name="repeatInterval" value="1000"/>
+            <property name="startDelay" value="1000"/>
+            <property name="repeatCount" value="-1"/>
+            <property name="processingElement" ref="dropbox1"/>
+        </bean>
+        <bean id="dropbox1" class="org.adroitlogic.x.connector.dropbox.DropboxEgressConnector">
+            <property name="operation" ref="list1"/>
+            <property name="responseProcessor" ref="json1"/>
+            <property name="setAsPayload" value="true"/>
+            <property name="clientId" value="7ldjy23envjzndt"/>
+            <property name="accessToken" value="KyPJal9R0pAAAAAAAAAAKdgSj_aBJmG4MADlEQ2tKNkvbCQ2cGHPrmd8vnhl2Geg"/>
+        </bean>
+        <bean id="list1" class="org.adroitlogic.x.connector.dropbox.operation.ListOperation">
+            <property name="path" value="/Feedback/Inbox"/>
+            <property name="useSharedLink" value="false"/>
+            <property name="includeMountedFolders" value="true"/>
+        </bean>
+        <bean id="json1" class="org.adroitlogic.x.processor.json.JSONPathExtractProcessor">
+            <property name="variableName" value="files"/>
+            <property name="jsonPath" value="$.entries[*].name"/>
+            <property name="nextElement" ref="for1"/>
+        </bean>
+        <bean id="for1" class="org.adroitlogic.x.processor.flowControl.ForEachLoop">
+            <property name="collectionType" value="COLLECTION"/>
+            <property name="iteratingVariable" value="file"/>
+            <property name="collectionVariable" value="files"/>
+            <property name="inLoopOutPort" ref="drop2"/>
+            <property name="loopTerminateOutPort" ref="sucess"/>
+        </bean>
+        <bean id="drop2" class="org.adroitlogic.x.connector.dropbox.DropboxEgressConnector">
+            <property name="operation" ref="down1"/>
+            <property name="responseProcessor" ref="drop3"/>
+            <property name="setAsPayload" value="true"/>
+            <property name="clientId" value="7ldjy23envjzndt"/>
+            <property name="accessToken" value="KyPJal9R0pAAAAAAAAAAKdgSj_aBJmG4MADlEQ2tKNkvbCQ2cGHPrmd8vnhl2Geg"/>
+        </bean>
+        <bean id="down1" class="org.adroitlogic.x.connector.dropbox.operation.DownloadOperation">
+            <property name="path" value="/Feedback/Inbox/@{variable.file}"/>
+            <property name="localPath" value="D:/dropbox/dropbox-feedback/@{current.timestamp.yyyy-MM-dd_HH-mm}"/>
+        </bean>
+        <bean id="drop3" class="org.adroitlogic.x.connector.dropbox.DropboxEgressConnector">
+            <property name="responseProcessor" ref="for1"/>
+            <property name="operation" ref="mov1"/>
+            <property name="setAsPayload" value="true"/>
+            <property name="maxRetries" value="3"/>
+            <property name="clientId" value="7ldjy23envjzndt"/>
+            <property name="accessToken" value="KyPJal9R0pAAAAAAAAAAKdgSj_aBJmG4MADlEQ2tKNkvbCQ2cGHPrmd8vnhl2Geg"/>
+        </bean>
+        <bean id="mov1" class="org.adroitlogic.x.connector.dropbox.operation.MoveOperation">
+            <property name="path" value="/Feedback/Inbox/@{variable.file}"/>
+            <property name="destination" value="/Feedback/Synced/@{variable.file}"/>
+        </bean>
+        <bean id="sucess" class="org.adroitlogic.x.components.flowend.SuccessfulFlowEnd">
+            <property name="preventMsgCompletion" value="true"/>
+        </bean>
+    </x:components>
+
+    <x:layout>
+
+        <x:position id="time1" xPos="400.0" yPos="160.0" angle="0.0" elementType="IngressConnector"/>
+        <x:position id="dropbox1" xPos="560.0" yPos="160.0" angle="0.0" elementType="EgressConnector"/>
+        <x:position id="list1" xPos="560.0" yPos="320.0" angle="0.0" elementType="ConnectorOperation"/>
+        <x:position id="json1" xPos="720.0" yPos="160.0" angle="0.0" elementType="ProcessingElement"/>
+        <x:position id="for1" xPos="880.0" yPos="160.0" angle="0.0" elementType="ProcessingElement"/>
+        <x:position id="drop2" xPos="1040.0" yPos="160.0" angle="0.0" elementType="EgressConnector"/>
+        <x:position id="down1" xPos="1040.0" yPos="320.0" angle="0.0" elementType="ConnectorOperation"/>
+        <x:position id="drop3" xPos="1200.0" yPos="160.0" angle="0.0" elementType="EgressConnector"/>
+        <x:position id="mov1" xPos="1200.0" yPos="320.0" angle="0.0" elementType="ConnectorOperation"/>
+        <x:position id="sucess" xPos="880.0" yPos="320.0" angle="0.0" elementType="ProcessingElement"/>
+    </x:layout>
+
+
+</x:flow>
