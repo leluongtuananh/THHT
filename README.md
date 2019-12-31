@@ -43,3 +43,10 @@ Cách chạy project:
 2. bước 2: Chạy project.
 3.   bước 3: Khởi tạo run/debug Configuration cửa ultraesb-x server.
 4.  bước 4: Chạy project.
+
+**Phân chia công việc**:
+1. Nguyễn Tuấn Anh: Đồng bộ dropbox
+2. Lê Lương Tuấn Anh: Thực hiện kết nối Trello với Slack
+3. Phùng Đình Xuân: Tìm hiểu các public port
+4. Bùi Ngọc Đăng: Làm slide, tìm hiểu về webhook
+5. Lê Văn Duy: Làm doc, tìm hiểu về trello API
